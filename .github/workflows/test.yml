@@ -11,7 +11,7 @@ jobs:
   default:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, macos-13]
         cache: [true, false]
     runs-on: ${{ matrix.os }}
     name: default ${{ matrix.cache == true && 'with' || 'without' }} cache (${{ matrix.os }})
@@ -44,7 +44,7 @@ jobs:
   no-run-install:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -61,7 +61,7 @@ jobs:
   no-pixi-toml:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -76,7 +76,7 @@ jobs:
   custom-pixi-version:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -85,15 +85,13 @@ jobs:
       - uses: ./
         with:
           cache: false
-          pixi-version: v0.1.0
-          # pixi 0.1.0 doesn't support --locked
-          locked: false
-      - run: pixi --version | grep -q "pixi 0.1.0"
+          pixi-version: v0.10.0
+      - run: pixi --version | grep -q "pixi 0.10.0"
 
   old-lockfile:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         locked: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
@@ -108,12 +106,12 @@ jobs:
       - if: matrix.os == 'windows-latest'
         run: choco install yq
       # assert that the lockfile wasn't updated
-      - run: test "$(yq '.version' pixi.lock)" = 1
+      - run: test "$(yq '.version' pixi.lock)" = 4
 
   install-path:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -126,7 +124,7 @@ jobs:
   global-install:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -145,7 +143,7 @@ jobs:
   frozen:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -160,7 +158,7 @@ jobs:
   locked:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -187,7 +185,7 @@ jobs:
   custom-manifest-path:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -199,7 +197,7 @@ jobs:
   different-log-level:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -213,7 +211,7 @@ jobs:
   custom-bin-path:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -233,7 +231,7 @@ jobs:
   existing-pixi-bin:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         ignore-reason: [none, version, version-latest, url, bin-path]
     runs-on: ${{ matrix.os }}
     steps:
@@ -257,6 +255,12 @@ jobs:
           curl -L --output $HOME/custom-existing-pixi/pixi https://github.com/prefix-dev/pixi/releases/download/v0.14.0/pixi-x86_64-unknown-linux-musl
           chmod +x $HOME/custom-existing-pixi/pixi
         if: matrix.os == 'ubuntu-latest'
+      - name: Download pixi binary (Ubuntu arm)
+        run: |
+          set -o pipefail
+          curl -L --output $HOME/custom-existing-pixi/pixi https://github.com/prefix-dev/pixi/releases/download/v0.14.0/pixi-aarch64-unknown-linux-musl
+          chmod +x $HOME/custom-existing-pixi/pixi
+        if: matrix.os == 'ubuntu-24.04-arm'
       - name: Download pixi binary (macOS)
         run: |
           set -o pipefail
@@ -353,7 +357,7 @@ jobs:
   auth-token:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -374,7 +378,7 @@ jobs:
   auth-username-password:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -397,7 +401,7 @@ jobs:
   auth-conda-token:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -418,7 +422,7 @@ jobs:
   auth-token-install:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -436,7 +440,7 @@ jobs:
   pixi-shell:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -460,7 +464,7 @@ jobs:
   pixi-shell-exec:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -569,7 +573,7 @@ jobs:
   no-lockfile:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -600,7 +604,7 @@ jobs:
     name: multiple-environments (${{ matrix.os }}, cache=${{ matrix.cache }})
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, macos-13]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, macos-13]
         cache: ['true', 'false']
     runs-on: ${{ matrix.os }}
     steps:
@@ -638,7 +642,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Move pixi files
@@ -654,7 +658,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Move pixi files
@@ -679,7 +683,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Move pixi files
@@ -703,7 +707,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Move pixi files
@@ -729,7 +733,7 @@ jobs:
   custom-pyproject-manifest-path:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -741,7 +745,7 @@ jobs:
   environment-activation-unix:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -853,7 +857,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -870,7 +874,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -886,7 +890,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -904,7 +908,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -920,7 +924,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -936,7 +940,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
@@ -952,7 +956,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
+  #       os: [windows-latest, ubuntu-latest, ubuntu-24.04-arm, macos-latest]
   #   steps:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
   #     - name: Move pixi files
